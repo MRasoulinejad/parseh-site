@@ -65,28 +65,94 @@ function site_contact_send(): never
 {
     $name = (string) input('name', '');
     $mobile = (string) input('mobile', '');
+    $email = mb_strtolower((string) input('email', ''));
     $message = (string) input('message', '');
     if (!empty($_POST['website'])) { // تله ربات
         redirect('/contact');
     }
-    if (mb_strlen($name) < 2 || mb_strlen($message) < 5 || ($mobile !== '' && !valid_mobile($mobile))) {
+    $errors = [];
+    if (mb_strlen($name) < 2) $errors[] = 'نام را وارد کنید.';
+    if (!valid_mobile($mobile)) $errors[] = 'شماره موبایل را به شکل ۰۹۱۲۳۴۵۶۷۸۹ وارد کنید.';
+    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'ایمیل معتبر نیست.';
+    if (mb_strlen($message) < 5) $errors[] = 'متن پیام را بنویسید.';
+    if ($errors) {
         with_old($_POST);
-        flash('error', 'نام، پیام و شماره موبایل معتبر را وارد کنید.');
+        foreach ($errors as $err) flash('error', $err);
         redirect('/contact');
     }
     if (!rate_limit('contact:' . client_ip(), 5, 3600)) {
         flash('error', 'تعداد پیام‌ها زیاد است؛ کمی بعد تلاش کنید.');
         redirect('/contact');
     }
+    do {
+        $code = random_code(8, '23456789ABCDEFGHJKMNPQRSTUVWXYZ');
+    } while (db_value('SELECT 1 FROM contact_messages WHERE tracking_code = ?', [$code]));
+    $token = bin2hex(random_bytes(16));
     db_insert('contact_messages', [
-        'name'       => mb_substr($name, 0, 100),
-        'mobile'     => $mobile ?: null,
-        'message'    => mb_substr($message, 0, 3000),
-        'is_read'    => 0,
-        'created_at' => now(),
+        'tracking_code' => $code,
+        'access_token'  => $token,
+        'patient_id'    => patient()['id'] ?? null,
+        'name'          => mb_substr($name, 0, 100),
+        'mobile'        => $mobile,
+        'email'         => $email ?: null,
+        'message'       => mb_substr($message, 0, 3000),
+        'is_read'       => 0,
+        'created_at'    => now(),
     ]);
-    flash('success', 'پیام شما ثبت شد. همکاران ما در اولین فرصت پاسخ می‌دهند.');
-    redirect('/contact');
+    $_SESSION['message_access'][$code] = true;
+    flash('success', 'پیام شما ثبت شد. کد پیگیری را نگه دارید.');
+    redirect('/messages/' . $code);
+}
+
+/* ---------- پیگیری پیام‌های فرم تماس ---------- */
+
+function site_messages_lookup_form(): string
+{
+    return view('site/messages_lookup', ['title' => 'پیگیری پیام'], 'site');
+}
+
+function site_messages_lookup(): never
+{
+    $code = strtoupper((string) input('code', ''));
+    $mobile = (string) input('mobile', '');
+    if (!rate_limit('msg-lookup:' . client_ip(), 10, 900)) {
+        flash('error', 'تعداد تلاش‌ها زیاد است. ۱۵ دقیقه دیگر دوباره امتحان کنید.');
+        redirect('/messages');
+    }
+    $row = db_one('SELECT tracking_code FROM contact_messages WHERE tracking_code = ? AND mobile = ?', [$code, $mobile]);
+    if (!$row) {
+        flash('error', 'پیامی با این کد پیگیری و شماره موبایل پیدا نشد.');
+        redirect('/messages');
+    }
+    $_SESSION['message_access'][$row['tracking_code']] = true;
+    redirect('/messages/' . $row['tracking_code']);
+}
+
+function site_message_show(string $code): string
+{
+    $m = db_one('SELECT * FROM contact_messages WHERE tracking_code = ?', [strtoupper($code)]);
+    if (!$m) {
+        abort(404);
+    }
+    $token = (string) ($_GET['t'] ?? '');
+    $p = patient();
+    $allowed = staff_can('messages.reply')
+        || !empty($_SESSION['message_access'][$m['tracking_code']])
+        || ($token !== '' && hash_equals($m['access_token'], $token))
+        || ($p && ((int) $m['patient_id'] === (int) $p['id'] || $m['mobile'] === $p['mobile']));
+    if (!$allowed) {
+        flash('info', 'برای دیدن این پیام، کد پیگیری و شماره موبایل را وارد کنید.');
+        redirect('/messages');
+    }
+    if ($token !== '') {
+        // لینک ایمیل یک بار دسترسی را در این مرورگر ثبت می‌کند و توکن از نوار آدرس پاک می‌شود
+        $_SESSION['message_access'][$m['tracking_code']] = true;
+        redirect('/messages/' . $m['tracking_code']);
+    }
+    if ($m['reply_text'] && !$m['reply_seen_at'] && !staff()) {
+        db_update('contact_messages', ['reply_seen_at' => now()], 'id = ?', [$m['id']]);
+    }
+    return view('site/message_show', ['m' => $m, 'title' => 'پیام ' . $m['tracking_code']], 'site');
 }
 
 /* ---------- جواب آنلاین با کد ملی و کد پیگیری ---------- */

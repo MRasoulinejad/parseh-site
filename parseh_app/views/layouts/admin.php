@@ -2,7 +2,7 @@
 $me = staff();
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/admin', PHP_URL_PATH);
 $on = fn (string $prefix) => ($prefix === '/admin' ? $path === '/admin' : str_starts_with($path, $prefix)) ? 'on' : '';
-$unread = staff_can('content.manage') ? (int) db_value('SELECT COUNT(*) FROM contact_messages WHERE is_read = 0') : 0;
+$unread = staff_can('messages.reply') ? (int) db_value('SELECT COUNT(*) FROM contact_messages WHERE replied_at IS NULL') : 0;
 $pendingResults = staff_can('results.manage') ? (int) db_value("SELECT COUNT(*) FROM appointments a LEFT JOIN results r ON r.appointment_id = a.id WHERE a.status = 'done' AND (r.id IS NULL OR r.status = 'draft')") : 0;
 ?><!doctype html>
 <html lang="fa" dir="rtl">
@@ -21,6 +21,7 @@ $pendingResults = staff_can('results.manage') ? (int) db_value("SELECT COUNT(*) 
     <?php if (staff_can('dashboard.view')): ?><a class="<?= $on('/admin') ?>" href="/admin">داشبورد</a><?php endif; ?>
     <?php if (staff_can('appointments.view')): ?><a class="<?= $on('/admin/appointments') ?>" href="/admin/appointments">نوبت‌ها</a><?php endif; ?>
     <?php if (staff_can('patients.view')): ?><a class="<?= $on('/admin/patients') ?>" href="/admin/patients">بیماران</a><?php endif; ?>
+    <?php if (staff_can('messages.reply')): ?><a class="<?= $on('/admin/messages') ?>" href="/admin/messages">پیام‌های تماس <?php if ($unread): ?><span class="count"><?= fa_num($unread) ?></span><?php endif; ?></a><?php endif; ?>
     <?php if (staff_can('results.manage')): ?><a class="<?= $on('/admin/results') ?>" href="/admin/results">جواب‌ها <?php if ($pendingResults): ?><span class="count"><?= fa_num($pendingResults) ?></span><?php endif; ?></a><?php endif; ?>
     <?php if (staff_can('services.manage')): ?>
       <span class="group">خدمات</span>
@@ -32,7 +33,6 @@ $pendingResults = staff_can('results.manage') ? (int) db_value("SELECT COUNT(*) 
       <a class="<?= $on('/admin/gallery') ?>" href="/admin/gallery">گالری تصاویر</a>
       <a class="<?= $on('/admin/posts') ?>" href="/admin/posts">مقالات</a>
       <a class="<?= $on('/admin/insurances') ?>" href="/admin/insurances">بیمه‌ها</a>
-      <a class="<?= $on('/admin/messages') ?>" href="/admin/messages">پیام‌ها <?php if ($unread): ?><span class="count"><?= fa_num($unread) ?></span><?php endif; ?></a>
       <a class="<?= $on('/admin/settings') ?>" href="/admin/settings">تنظیمات سایت</a>
     <?php endif; ?>
     <?php if (staff_can('users.manage')): ?>

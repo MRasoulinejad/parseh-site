@@ -156,13 +156,63 @@ function admin_post_delete(string $id): never
 
 function admin_messages(): string
 {
-    require_staff('content.manage');
-    return view('admin/messages', ['page' => paginate('SELECT * FROM contact_messages ORDER BY is_read, id DESC'), 'title' => 'پیام‌های فرم تماس'], 'admin');
+    require_staff('messages.reply');
+    $filter = ($_GET['f'] ?? 'open') === 'all' ? 'all' : 'open';
+    $sql = 'SELECT m.*, u.name AS replier_name FROM contact_messages m LEFT JOIN users u ON u.id = m.replied_by'
+        . ($filter === 'open' ? ' WHERE m.replied_at IS NULL' : '') . ' ORDER BY m.id DESC';
+    return view('admin/messages', [
+        'page'   => paginate($sql),
+        'filter' => $filter,
+        'open'   => (int) db_value('SELECT COUNT(*) FROM contact_messages WHERE replied_at IS NULL'),
+        'title'  => 'پیام‌های فرم تماس',
+    ], 'admin');
+}
+
+function admin_message_reply(string $id): never
+{
+    $me = require_staff('messages.reply');
+    $m = db_find('contact_messages', (int) $id);
+    if (!$m) {
+        abort(404);
+    }
+    $reply = trim((string) ($_POST['reply'] ?? ''));
+    if (mb_strlen($reply) < 2) {
+        flash('error', 'متن پاسخ را بنویسید.');
+        redirect('/admin/messages?f=all#m' . $m['id']);
+    }
+    $first = $m['replied_at'] === null;
+    db_update('contact_messages', [
+        'reply_text'    => mb_substr($reply, 0, 3000),
+        'replied_by'    => $me['id'],
+        'replied_at'    => now(),
+        'reply_seen_at' => null,
+        'is_read'       => 1,
+    ], 'id = ?', [$m['id']]);
+    audit($first ? 'reply' : 'edit_reply', 'contact_messages', (int) $m['id']);
+
+    $note = 'پاسخ ثبت شد.';
+    if ($m['email'] && ($first || input('notify_again'))) {
+        $link = rtrim((string) config('app_url'), '/') . '/messages/' . $m['tracking_code'] . '?t=' . $m['access_token'];
+        $sent = mail_send(
+            $m['email'],
+            'پاسخ پیام شماره ' . $m['tracking_code'] . ' — رادیولوژی پارسه',
+            view('emails/reply_notice', ['m' => $m, 'link' => $link]),
+            "سلام {$m['name']}،\n\nدرخواست شماره {$m['tracking_code']} شما در کلینیک رادیولوژی پارسه پاسخ داده شد.\nبرای مشاهده پاسخ روی لینک زیر کلیک کنید:\n{$link}\n\nرادیولوژی پارسه"
+        );
+        if ($sent) {
+            db_update('contact_messages', ['email_sent_at' => now()], 'id = ?', [$m['id']]);
+        }
+        $note .= $sent ? ' ایمیل اطلاع‌رسانی برای ' . $m['email'] . ' ارسال شد.' : ' ارسال ایمیل ناموفق بود؛ تنظیمات ایمیل را بررسی کنید.';
+    } elseif (!$m['email']) {
+        $note .= ' فرستنده ایمیل نداده؛ پاسخ را با کد پیگیری روی سایت یا در پنل خودش می‌بیند.';
+    }
+    flash('success', $note);
+    redirect('/admin/messages?f=all#m' . $m['id']);
 }
 
 function admin_message_read(string $id): never
 {
-    require_staff('content.manage');
+    require_staff('messages.reply');
     db_update('contact_messages', ['is_read' => 1], 'id = ?', [(int) $id]);
     redirect('/admin/messages');
 }
@@ -171,7 +221,8 @@ function admin_message_delete(string $id): never
 {
     require_staff('content.manage');
     db_query('DELETE FROM contact_messages WHERE id = ?', [(int) $id]);
-    redirect('/admin/messages');
+    audit('delete', 'contact_messages', (int) $id);
+    redirect('/admin/messages?f=all');
 }
 
 /* ---------- تنظیمات ---------- */

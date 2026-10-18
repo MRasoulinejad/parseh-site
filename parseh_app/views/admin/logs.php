@@ -1,8 +1,8 @@
 <?php
 $actions = ['login' => 'ورود', 'logout' => 'خروج', 'view' => 'مشاهده', 'create' => 'ایجاد', 'update' => 'ویرایش', 'save' => 'ذخیره', 'delete' => 'حذف', 'book' => 'رزرو آنلاین', 'cancel' => 'لغو توسط بیمار',
     'view_result' => 'مشاهده جواب', 'upload_result' => 'بارگذاری جواب', 'publish_result' => 'انتشار جواب', 'unpublish_result' => 'لغو انتشار جواب', 'delete_report' => 'حذف گزارش', 'delete_image' => 'حذف تصویر',
-    'change_password' => 'تغییر رمز', 'setup' => 'راه‌اندازی', 'add' => 'افزودن'];
-$entities = ['appointments' => 'نوبت', 'patients' => 'بیمار', 'results' => 'جواب', 'users' => 'کاربر', 'roles' => 'گروه', 'services' => 'خدمت', 'schedules' => 'برنامه کاری', 'settings' => 'تنظیمات'];
+    'change_password' => 'تغییر رمز', 'reply' => 'پاسخ به پیام', 'edit_reply' => 'ویرایش پاسخ پیام', 'setup' => 'راه‌اندازی', 'add' => 'افزودن'];
+$entities = ['appointments' => 'نوبت', 'patients' => 'بیمار', 'results' => 'جواب', 'users' => 'کاربر', 'roles' => 'گروه', 'services' => 'خدمت', 'schedules' => 'برنامه کاری', 'settings' => 'تنظیمات', 'contact_messages' => 'پیام تماس'];
 ?>
 <div class="table-wrap"><table>
   <thead><tr><th>زمان</th><th>چه کسی</th><th>عمل</th><th>روی</th><th>IP</th></tr></thead>

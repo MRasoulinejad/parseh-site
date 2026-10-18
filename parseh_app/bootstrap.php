@@ -22,7 +22,7 @@ if (!empty($GLOBALS['__config']['debug'])) {
 ini_set('log_errors', '1');
 ini_set('error_log', STORAGE_PATH . '/logs/php-error.log');
 
-foreach (['helpers', 'jalali', 'db', 'auth', 'sms', 'upload', 'slots', 'router', 'icons'] as $lib) {
+foreach (['helpers', 'jalali', 'db', 'auth', 'sms', 'upload', 'slots', 'router', 'icons', 'mail'] as $lib) {
     require APP_PATH . "/lib/{$lib}.php";
 }
 

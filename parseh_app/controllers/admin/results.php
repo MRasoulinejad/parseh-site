@@ -80,7 +80,7 @@ function admin_result_publish(string $id): never
     $a = db_one('SELECT a.tracking_code, p.mobile FROM appointments a JOIN patients p ON p.id = a.patient_id WHERE a.id = ?', [$r['appointment_id']]);
     if (input('send_sms') && $a) {
         $site = rtrim((string) config('app_url'), '/');
-        sms_send($a['mobile'], 'result_ready', "جواب تصویربرداری شما در رادیولوژی پارسه آماده است.\nدریافت: {$site}/results\nکد پیگیری: {$a['tracking_code']}");
+        sms_send($a['mobile'], 'result_ready', "جواب تصویربرداری شما در رادیولوژی پارسه آماده است.\nدریافت: {$site}/results\nکد پیگیری: {$a['tracking_code']}", ['CODE' => $a['tracking_code']]);
     }
     flash('success', 'جواب منتشر شد و تا ' . fa_num((string) $days) . ' روز در دسترس بیمار است.');
     redirect('/admin/appointments/' . $r['appointment_id']);

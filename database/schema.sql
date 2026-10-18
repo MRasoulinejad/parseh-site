@@ -165,12 +165,23 @@ CREATE TABLE posts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_persian_ci;
 
 CREATE TABLE contact_messages (
-  id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  name       VARCHAR(100) NOT NULL,
-  mobile     CHAR(11) NULL,
-  message    TEXT NOT NULL,
-  is_read    TINYINT(1) NOT NULL DEFAULT 0,
-  created_at DATETIME NOT NULL
+  id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  tracking_code CHAR(8) NOT NULL UNIQUE,
+  access_token  CHAR(32) NOT NULL,
+  patient_id    INT UNSIGNED NULL,
+  name          VARCHAR(100) NOT NULL,
+  mobile        CHAR(11) NOT NULL,
+  email         VARCHAR(150) NULL,
+  message       TEXT NOT NULL,
+  is_read       TINYINT(1) NOT NULL DEFAULT 0,
+  reply_text    TEXT NULL,
+  replied_by    INT UNSIGNED NULL,
+  replied_at    DATETIME NULL,
+  reply_seen_at DATETIME NULL,
+  email_sent_at DATETIME NULL,
+  created_at    DATETIME NOT NULL,
+  FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE SET NULL,
+  FOREIGN KEY (replied_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_persian_ci;
 
 CREATE TABLE sms_logs (
@@ -207,5 +218,7 @@ CREATE INDEX idx_results_status ON results (status, expires_at);
 CREATE INDEX idx_audit_entity ON audit_logs (entity, entity_id);
 CREATE INDEX idx_audit_time ON audit_logs (created_at);
 CREATE INDEX idx_sms_time ON sms_logs (created_at);
+CREATE INDEX idx_contact_mobile ON contact_messages (mobile);
+CREATE INDEX idx_contact_reply ON contact_messages (replied_at);
 
 SET FOREIGN_KEY_CHECKS = 1;

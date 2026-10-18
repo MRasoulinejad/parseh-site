@@ -108,7 +108,7 @@ $rid = db_insert('results', ['appointment_id' => $aids[0], 'report_path' => 'res
 db_insert('result_images', ['result_id' => $rid, 'file_path' => 'results/demo/xray.jpg', 'caption' => 'تصویر نمونه', 'sort_order' => 0]);
 
 db_insert('posts', ['title' => 'آمادگی‌های لازم پیش از سونوگرافی', 'slug' => 'ultrasound-prep', 'body' => "این یک مقاله نمونه است و از پنل مدیریت → مقالات قابل ویرایش است.\n\nبرای سونوگرافی شکم ۶ تا ۸ ساعت ناشتا باشید. برای سونوگرافی لگن یک ساعت قبل چهار تا پنج لیوان آب بنوشید.", 'published_at' => $t, 'created_at' => $t]);
-db_insert('contact_messages', ['name' => 'بیمار نمونه', 'mobile' => '09120000000', 'message' => 'سلام، آیا سونوگرافی داپلر روز پنجشنبه هم انجام می‌شود؟', 'is_read' => 0, 'created_at' => $t]);
+db_insert('contact_messages', ['tracking_code' => 'DEMO2345', 'access_token' => bin2hex(random_bytes(16)), 'name' => 'بیمار نمونه', 'mobile' => '09120000000', 'email' => 'patient@example.com', 'message' => 'سلام، آیا سونوگرافی داپلر روز پنجشنبه هم انجام می‌شود؟', 'is_read' => 0, 'created_at' => $t]);
 
 echo "demo database ready\n";
 echo "tracking code of sample result: " . db_value('SELECT tracking_code FROM appointments WHERE id = ?', [$aids[0]]) . ' / national code ' . national_code(11) . "\n";

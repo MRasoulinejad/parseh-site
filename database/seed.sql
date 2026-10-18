@@ -4,8 +4,8 @@ SET NAMES utf8mb4;
 -- گروه‌های کاربری
 INSERT INTO roles (id, name, permissions, is_full_access, is_system, created_at) VALUES
 (1, 'دکتر هاشمی — دسترسی کامل', '[]', 1, 1, '2026-10-18 00:00:00'),
-(2, 'مدیر سایت', '["dashboard.view","appointments.view","appointments.manage","patients.view","patients.manage","results.manage","services.manage","content.manage","users.manage","logs.view"]', 0, 0, '2026-10-18 00:00:00'),
-(3, 'پرسنل پذیرش', '["dashboard.view","appointments.view","appointments.manage","patients.view","patients.manage","results.manage"]', 0, 0, '2026-10-18 00:00:00');
+(2, 'مدیر سایت', '["dashboard.view","appointments.view","appointments.manage","patients.view","patients.manage","results.manage","services.manage","content.manage","messages.reply","users.manage","logs.view"]', 0, 0, '2026-10-18 00:00:00'),
+(3, 'پرسنل پذیرش', '["dashboard.view","appointments.view","appointments.manage","patients.view","patients.manage","results.manage","messages.reply"]', 0, 0, '2026-10-18 00:00:00');
 
 -- تنظیمات (از پنل مدیریت → تنظیمات قابل تغییر است)
 INSERT INTO settings (`key`, `value`) VALUES

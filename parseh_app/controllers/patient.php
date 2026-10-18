@@ -224,7 +224,8 @@ function booking_confirm(): never
     audit('book', 'appointments', $id);
     sms_send($p['mobile'], 'confirm',
         "نوبت شما در رادیولوژی پارسه ثبت شد.\n{$service['title']}\n" . jdate($startsAt, 'long') . ' ساعت ' . fa_num(jdate($startsAt, 'time')) .
-        "\nکد پیگیری: {$code}" . ($service['prep_text'] ? "\nآمادگی: {$service['prep_text']}" : ''));
+        "\nکد پیگیری: {$code}" . ($service['prep_text'] ? "\nآمادگی: {$service['prep_text']}" : ''),
+        ['SERVICE' => $service['title'], 'DATE' => jdate($startsAt, 'date'), 'TIME' => fa_num(jdate($startsAt, 'time')), 'CODE' => $code]);
     redirect('/booking/done/' . $id);
 }
 
@@ -256,8 +257,10 @@ function patient_panel(): string
             $results[] = result_bundle((int) $a['result_id']);
         }
     }
+    $messages = db_all('SELECT * FROM contact_messages WHERE patient_id = ? OR mobile = ? ORDER BY id DESC LIMIT 20', [$p['id'], $p['mobile']]);
     return view('patient/panel', [
         'p'            => $p,
+        'messages'     => $messages,
         'appointments' => $appointments,
         'results'      => $results,
         'cancelBefore' => (int) config('cancel_hours_before', 3),

@@ -22,7 +22,8 @@ $rows = db_all(
 foreach ($rows as $r) {
     sms_send($r['mobile'], 'reminder',
         "یادآوری نوبت فردا در رادیولوژی پارسه:\n{$r['title']}\nساعت " . fa_num(jdate($r['starts_at'], 'time')) .
-        ($r['prep_text'] ? "\nآمادگی: {$r['prep_text']}" : ''));
+        ($r['prep_text'] ? "\nآمادگی: {$r['prep_text']}" : ''),
+        ['SERVICE' => $r['title'], 'TIME' => fa_num(jdate($r['starts_at'], 'time'))]);
     db_update('appointments', ['reminded_at' => now()], 'id = ?', [$r['id']]);
 }
 $out[] = 'reminders: ' . count($rows);

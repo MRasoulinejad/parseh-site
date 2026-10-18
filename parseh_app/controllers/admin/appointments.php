@@ -84,7 +84,8 @@ function admin_appointment_store(): never
     audit('create', 'appointments', $id);
     if (input('send_sms')) {
         sms_send($patient['mobile'], 'confirm',
-            "نوبت شما در رادیولوژی پارسه ثبت شد.\n{$service['title']}\n" . jdate($startsAt, 'long') . ' ساعت ' . fa_num($time) . "\nکد پیگیری: {$code}");
+            "نوبت شما در رادیولوژی پارسه ثبت شد.\n{$service['title']}\n" . jdate($startsAt, 'long') . ' ساعت ' . fa_num($time) . "\nکد پیگیری: {$code}",
+            ['SERVICE' => $service['title'], 'DATE' => jdate($startsAt, 'date'), 'TIME' => fa_num($time), 'CODE' => $code]);
     }
     flash('success', 'نوبت ثبت شد. کد پیگیری: ' . $code);
     redirect('/admin/appointments/' . $id);

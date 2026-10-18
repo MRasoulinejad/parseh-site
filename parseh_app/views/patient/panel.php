@@ -19,6 +19,25 @@
     </div>
   <?php endif; ?>
 
+  <?php if (!empty($messages)): ?>
+    <h2 style="font-size:22px;font-weight:800;margin:28px 0 12px">پیام‌های من</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>تاریخ</th><th>پیام</th><th>وضعیت</th><th></th></tr></thead>
+        <tbody>
+        <?php foreach ($messages as $msg): ?>
+          <tr>
+            <td><?= jdate($msg['created_at']) ?></td>
+            <td><?= e(mb_substr($msg['message'], 0, 60)) ?><?= mb_strlen($msg['message']) > 60 ? '…' : '' ?></td>
+            <td><?= $msg['reply_text'] ? '<span class="badge badge-ok">پاسخ داده شد</span>' : '<span class="badge">در انتظار پاسخ</span>' ?></td>
+            <td><a class="btn btn-ghost btn-sm" href="/messages/<?= e($msg['tracking_code']) ?>">مشاهده</a></td>
+          </tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  <?php endif; ?>
+
   <h2 style="font-size:22px;font-weight:800;margin:28px 0 12px">نوبت‌های من</h2>
   <?php if (!$appointments): ?>
     <p class="muted">نوبتی ثبت نکرده‌اید.</p>

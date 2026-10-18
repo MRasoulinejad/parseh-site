@@ -12,7 +12,8 @@ function all_permissions(): array
         'patients.manage'     => 'ثبت و ویرایش بیماران',
         'results.manage'      => 'بارگذاری و انتشار جواب‌ها',
         'services.manage'     => 'خدمات و برنامه کاری',
-        'content.manage'      => 'محتوای سایت (گالری، مقالات، بیمه‌ها، تنظیمات، پیام‌ها)',
+        'content.manage'      => 'محتوای سایت (گالری، مقالات، بیمه‌ها، تنظیمات)',
+        'messages.reply'      => 'دیدن و پاسخ به پیام‌های فرم تماس',
         'users.manage'        => 'تعریف پرسنل و گروه‌های کاربری',
         'logs.view'           => 'دیدن گزارش فعالیت‌ها و پیامک‌ها',
     ];
@@ -125,7 +126,7 @@ function otp_issue(string $mobile): ?string
         'attempts'   => 0,
         'expires_at' => date('Y-m-d H:i:s', time() + 120),
     ]);
-    sms_send($mobile, 'otp', 'کد ورود شما به سایت ' . config('app_name') . ': ' . $code);
+    sms_send($mobile, 'otp', 'کد ورود شما به سایت ' . config('app_name') . ': ' . $code, ['CODE' => $code]);
     return $code;
 }
 
